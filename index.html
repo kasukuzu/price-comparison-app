@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品価格比較アプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>商品価格比較アプリ</h1>
+    <input type="text" id="keyword" placeholder="検索キーワードを入力" />
+    <button onclick="searchProducts()">検索</button>
+    <table id="results">
+        <thead>
+            <tr>
+                <th>商品名</th>
+                <th>Yahoo価格</th>
+                <th>楽天価格</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const YAHOO_APP_ID = 'dj00aiZpPTA2bG9Zd2pTSXZ2VCZzPWNvbnN1bWVyc2VjcmV0Jng9OWM-';  // YahooアプリケーションIDを入力
+        const RAKUTEN_APP_ID = '1079222175551345366';  // 楽天アプリケーションIDを入力
+
+        async function searchYahoo(keyword) {
+            const url = `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${YAHOO_APP_ID}&query=${keyword}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.hits.map(item => ({
+                name: item.name,
+                price: item.price,
+                url: item.url
+            }));
+        }
+
+        async function searchRakuten(keyword) {
+            const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${RAKUTEN_APP_ID}&keyword=${keyword}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.Items.map(item => ({
+                name: item.Item.itemName,
+                price: item.Item.itemPrice,
+                url: item.Item.itemUrl
+            }));
+        }
+
+        async function searchProducts() {
+            const keyword = document.getElementById('keyword').value;
+            if (!keyword) return alert("キーワードを入力してください");
+
+            const [yahooResults, rakutenResults] = await Promise.all([
+                searchYahoo(keyword),
+                searchRakuten(keyword)
+            ]);
+
+            const tableBody = document.querySelector("#results tbody");
+            tableBody.innerHTML = "";  // テーブルの内容をリセット
+
+            const allProducts = [...yahooResults, ...rakutenResults];
+            allProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><a href="${product.url}" target="_blank">${product.name}</a></td>
+                    <td>${product.price ? product.price + '円' : '価格不明'}</td>
+                    <td>${product.price ? product.price + '円' : '価格不明'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
