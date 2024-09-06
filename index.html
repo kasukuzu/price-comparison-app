@@ -40,12 +40,9 @@
     </table>
 
     <script>
-        const YAHOO_APP_ID = 'dj00aiZpPTA2bG9Zd2pTSXZ2VCZzPWNvbnN1bWVyc2VjcmV0Jng9OWM-';  // あなたのYahooアプリケーションIDをここに入力
-        const RAKUTEN_APP_ID = '1079222175551345366';  // あなたの楽天アプリケーションIDをここに入力
-
+        // Yahooショッピングの検索
         async function searchYahoo(keyword) {
-            const url = `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${YAHOO_APP_ID}&query=${keyword}`;
-            const response = await fetch(url);
+            const response = await fetch(`http://your-app-name.herokuapp.com/yahoo?keyword=${keyword}`);
             const data = await response.json();
             return data.hits.map(item => ({
                 name: item.name,
@@ -53,9 +50,9 @@
             }));
         }
 
+        // 楽天市場の検索
         async function searchRakuten(keyword) {
-            const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${RAKUTEN_APP_ID}&keyword=${keyword}`;
-            const response = await fetch(url);
+            const response = await fetch(`http://your-app-name.herokuapp.com/rakuten?keyword=${keyword}`);
             const data = await response.json();
             return data.Items.map(item => ({
                 name: item.Item.itemName,
@@ -63,6 +60,7 @@
             }));
         }
 
+        // 検索ボタンが押されたときの処理
         async function searchProducts() {
             const keyword = document.getElementById('keyword').value;
             if (!keyword) return alert("キーワードを入力してください");
