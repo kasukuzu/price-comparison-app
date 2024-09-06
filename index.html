@@ -3,18 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazonと楽天市場とヤフーショッピングの価格比較アプリ</title>
+    <title>商品価格比較アプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-    <h1>Amazonと楽天市場とヤフーショッピングの価格比較アプリ</h1>
-    <p>このアプリは、Pythonを使ってAmazon、ヤフーショッピング、楽天市場から商品を検索し、価格を比較するアプリです。</p>
-    <h2>機能</h2>
-    <ul>
-        <li>キーワード検索による商品検索</li>
-        <li>各ショッピングサイトの価格比較</li>
-        <li>最安値商品の表示</li>
-    </ul>
-    <h2>今後の開発予定</h2>
-    <p>現在、AmazonアソシエイトAPIを使用した商品情報の取得機能を実装中です。楽天市場とYahooショッピングも対応予定です。</p>
+    <h1>商品価格比較アプリ</h1>
+    <input type="text" id="keyword" placeholder="検索キーワードを入力" />
+    <button onclick="searchProducts()">検索</button>
+    <table id="results">
+        <thead>
+            <tr>
+                <th>商品名</th>
+                <th>Yahoo価格</th>
+                <th>楽天市場価格</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const YAHOO_APP_ID = 'dj00aiZpPTA2bG9Zd2pTSXZ2VCZzPWNvbnN1bWVyc2VjcmV0Jng9OWM-';  // あなたのYahooアプリケーションIDをここに入力
+        const RAKUTEN_APP_ID = '1079222175551345366';  // あなたの楽天アプリケーションIDをここに入力
+
+        async function searchYahoo(keyword) {
+            const url = `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${YAHOO_APP_ID}&query=${keyword}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.hits.map(item => ({
+                name: item.name,
+                price: item.price
+            }));
+        }
+
+        async function searchRakuten(keyword) {
+            const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${RAKUTEN_APP_ID}&keyword=${keyword}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.Items.map(item => ({
+                name: item.Item.itemName,
+                price: item.Item.itemPrice
+            }));
+        }
+
+        async function searchProducts() {
+            const keyword = document.getElementById('keyword').value;
+            if (!keyword) return alert("キーワードを入力してください");
+
+            const [yahooResults, rakutenResults] = await Promise.all([
+                searchYahoo(keyword),
+                searchRakuten(keyword)
+            ]);
+
+            const tableBody = document.querySelector("#results tbody");
+            tableBody.innerHTML = "";  // テーブルの内容をリセット
+
+            const allProducts = [...yahooResults, ...rakutenResults];
+            allProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.price || '価格不明'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
 </body>
 </html>
