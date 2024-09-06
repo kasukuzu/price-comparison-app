@@ -33,34 +33,38 @@
             <tr>
                 <th>商品名</th>
                 <th>Yahoo価格</th>
-                <th>楽天市場価格</th>
+                <th>楽天価格</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <script>
-        // Yahooショッピングの検索
+        const YAHOO_APP_ID = 'YOUR_YAHOO_APP_ID';  // YahooアプリケーションIDを入力
+        const RAKUTEN_APP_ID = 'YOUR_RAKUTEN_APP_ID';  // 楽天アプリケーションIDを入力
+
         async function searchYahoo(keyword) {
-            const response = await fetch(`http://your-app-name.herokuapp.com/yahoo?keyword=${keyword}`);
+            const url = `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${YAHOO_APP_ID}&query=${keyword}`;
+            const response = await fetch(url);
             const data = await response.json();
             return data.hits.map(item => ({
                 name: item.name,
-                price: item.price
+                price: item.price,
+                url: item.url
             }));
         }
 
-        // 楽天市場の検索
         async function searchRakuten(keyword) {
-            const response = await fetch(`http://your-app-name.herokuapp.com/rakuten?keyword=${keyword}`);
+            const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${RAKUTEN_APP_ID}&keyword=${keyword}`;
+            const response = await fetch(url);
             const data = await response.json();
             return data.Items.map(item => ({
                 name: item.Item.itemName,
-                price: item.Item.itemPrice
+                price: item.Item.itemPrice,
+                url: item.Item.itemUrl
             }));
         }
 
-        // 検索ボタンが押されたときの処理
         async function searchProducts() {
             const keyword = document.getElementById('keyword').value;
             if (!keyword) return alert("キーワードを入力してください");
@@ -77,8 +81,9 @@
             allProducts.forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>${product.price || '価格不明'}</td>
+                    <td><a href="${product.url}" target="_blank">${product.name}</a></td>
+                    <td>${product.price ? product.price + '円' : '価格不明'}</td>
+                    <td>${product.price ? product.price + '円' : '価格不明'}</td>
                 `;
                 tableBody.appendChild(row);
             });
